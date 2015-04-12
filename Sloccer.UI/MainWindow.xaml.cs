@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using Sloccer.Core;
+using System.Windows;
 
 namespace Sloccer.UI
 {
@@ -6,6 +7,9 @@ namespace Sloccer.UI
     {
         public MainWindow()
         {
+            var a = new CSharpSlocAnalyser();
+            a.GetSlocFor(null, SlocOptions.CountCompilerDirectives);
+
             InitializeComponent();
         }
     }
