@@ -36,6 +36,9 @@
     <Reference Include="Microsoft.CodeAnalysis.CSharp">
       <HintPath>..\..\roslyn\Binaries\Debug\CSharpWorkspace\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Workspaces">
+      <HintPath>..\..\roslyn\Binaries\Debug\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
