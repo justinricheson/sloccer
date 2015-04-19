@@ -1,15 +1,14 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharpExtensions;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharpExtensions;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using System.Text;
-using System;
 
 namespace Sloccer.Core
 {
+    // TODO mock fs calls
     public class CSharpSlocAnalyser : ISlocAnalyser
     {
         public SlocResult GetSlocFor(FileInfo file)
@@ -28,45 +27,35 @@ namespace Sloccer.Core
             var tree = CSharpSyntaxTree.ParseText(fileSt.ToString());
             var root = tree.GetRoot();
 
-            var walker = new TokenAndTriviaWalker();
-            walker.Visit(root);
+            var tokenWalker = new TokenAndTriviaWalker(root);
+            tokenWalker.Visit(root);
 
-            var lineMap = walker.LineMap;
+            var methodWalker = new ClassAndMethodWalker();
+            methodWalker.Visit(root);
+
+            var lines = tokenWalker.LineMap;
 
             return new SlocResult
             {
                 TotalLineCount = simpleLineCount,
-                WhiteSpaceLines = GetWhitespaceLines(lineMap),
-                CommentLines = GetCommentLines(lineMap),
-                CompilerDirectiveLines = GetCompilerDirectiveLines(lineMap),
-                OtherLines = GetOtherLines(lineMap)
+                WhiteSpaceLines = lines.Where(l => IsWhiteSpace(l)).ToList(),
+                CommentLines = lines.Where(l => IsComment(l)).ToList(),
+                CompilerDirectiveLines = lines.Where(l => IsCompilerDirective(l)).ToList(),
+                CurlyBraceLines = lines.Where(l => IsCurlyBraceLine(l)).ToList(),
+                OtherLines = lines.Where(l => IsOtherLine(l)).ToList(),
+                NumberOfClasses = methodWalker.NumberOfClasses,
+                NumberOfMethods = methodWalker.NumberOfMethods
             };
         }
 
-        private List<Line> GetWhitespaceLines(List<Line> lines)
+        private bool IsComment(Line line)
         {
-            var result = new List<Line>();
-
-            foreach (var line in lines)
+            if (line.TokensAndTrivia.OfType<SyntaxToken>()
+                .Count(t => t.CSharpKind() == SyntaxKind.XmlComment) > 0)
             {
-                var trivia = line.TokensAndTrivia
-                    .OfType<SyntaxTrivia>()
-                    .Where(l => IsWhiteSpace(l))
-                    .ToList();
-                if (trivia.Count > 0)
-                {
-                    result.Add(line);
-                }
+                return true;
             }
-
-            return result;
-        }
-
-        private List<Line> GetCommentLines(List<Line> lines)
-        {
-            var result = new List<Line>();
-
-            foreach (var line in lines)
+            else
             {
                 var trivia = line.TokensAndTrivia
                     .OfType<SyntaxTrivia>()
@@ -74,74 +63,63 @@ namespace Sloccer.Core
                     .ToList();
                 if (trivia.Count > 0)
                 {
-                    result.Add(line);
+                    return true;
                 }
             }
 
-            return result;
+            return false;
         }
-
-        private List<Line> GetCompilerDirectiveLines(List<Line> lines)
-        {
-            var result = new List<Line>();
-
-            foreach (var line in lines)
-            {
-                var trivia = line.TokensAndTrivia
-                    .OfType<SyntaxTrivia>()
-                    .Where(l => l.IsDirective)
-                    .ToList();
-                if (trivia.Count > 0)
-                {
-                    result.Add(line);
-                }
-            }
-
-            return result;
-        }
-
-        private List<Line> GetOtherLines(List<Line> lines)
-        {
-            var result = new List<Line>();
-
-            foreach (var line in lines)
-            {
-                var tokens = line.TokensAndTrivia
-                    .OfType<SyntaxToken>()
-                    .ToList();
-                if (tokens.Count > 0)
-                {
-                    result.Add(line);
-                }
-                else
-                {
-                    var trivia = line.TokensAndTrivia
-                        .OfType<SyntaxTrivia>()
-                        .Where(l => !l.IsDirective && !IsComment(l) && !IsWhiteSpace(l))
-                        .ToList();
-                    if (trivia.Count > 0)
-                    {
-                        result.Add(line);
-                    }
-                }
-            }
-
-            return result;
-        }
-
         private bool IsComment(SyntaxTrivia trivia)
         {
             return trivia.CSharpKind() == SyntaxKind.SingleLineCommentTrivia
                 || trivia.CSharpKind() == SyntaxKind.SingleLineDocumentationCommentTrivia
                 || trivia.CSharpKind() == SyntaxKind.DocumentationCommentExteriorTrivia
                 || trivia.CSharpKind() == SyntaxKind.MultiLineCommentTrivia
-                || trivia.CSharpKind() == SyntaxKind.MultiLineDocumentationCommentTrivia;
+                || trivia.CSharpKind() == SyntaxKind.MultiLineDocumentationCommentTrivia
+                || trivia.CSharpKind() == SyntaxKind.XmlComment;
         }
 
+        private bool IsWhiteSpace(Line line)
+        {
+            if (line.TokensAndTrivia.OfType<SyntaxToken>().Count() == 0)
+            {
+                var trivia = line.TokensAndTrivia.OfType<SyntaxTrivia>().ToList();
+                if (trivia.Count(t => IsWhiteSpace(t)) == trivia.Count)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
         private bool IsWhiteSpace(SyntaxTrivia trivia)
         {
             return trivia.CSharpKind() == SyntaxKind.WhitespaceTrivia
                 || trivia.CSharpKind() == SyntaxKind.EndOfLineTrivia;
+        }
+
+        private bool IsCurlyBraceLine(Line line)
+        {
+            var tokens = line.TokensAndTrivia
+                .OfType<SyntaxToken>()
+                .ToList();
+
+            return tokens.Count == 1 &&
+                (tokens.First().CSharpKind() == SyntaxKind.OpenBraceToken
+              || tokens.First().CSharpKind() == SyntaxKind.CloseBraceToken);
+        }
+        private bool IsCompilerDirective(Line line)
+        {
+            return line.TokensAndTrivia
+                .OfType<SyntaxTrivia>()
+                .Count(t => t.IsDirective) > 0;
+        }
+        private bool IsOtherLine(Line line)
+        {
+            return !IsComment(line)
+                && !IsWhiteSpace(line)
+                && !IsCompilerDirective(line)
+                && !IsCurlyBraceLine(line);
         }
 
         private static void PrintMap(Dictionary<int, List<object>> lineMap)
@@ -166,12 +144,3 @@ namespace Sloccer.Core
         }
     }
 }
-
-// Simple newline count
-// Comment filter
-// Whitespace filter
-
-// Semantic Analysis
-// How many classes
-// How many methods
-// How many blocks

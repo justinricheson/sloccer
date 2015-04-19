@@ -1,7 +1,6 @@
 ﻿using Sloccer.Core;
 using System.IO;
 using System.Windows;
-using System.Linq;
 
 namespace Sloccer.UI
 {
@@ -14,33 +13,24 @@ namespace Sloccer.UI
             var a = new CSharpSlocAnalyser();
             var results = a.GetSlocFor(testFile);
 
-            System.Diagnostics.Debug.WriteLine("Total: {0}", results.TotalLineCount);
+            var whitespace = results.WhiteSpaceLines
+                .ToLines();
 
-            System.Diagnostics.Debug.WriteLine(string.Format("WhiteSpace: {0}",
-                results.WhiteSpaceLines
-                    .Except(results.CommentLines)
-                    .Except(results.CompilerDirectiveLines)
-                    .Except(results.OtherLines)
-                    .ToLines()));
+            var comments = results.CommentLines
+                .ToLines();
 
-            var foo = results.WhiteSpaceLines
-                .Except(results.CommentLines)
-                .Except(results.CompilerDirectiveLines)
-                .Except(results.OtherLines)
-                .Where(l => l.Text != string.Empty)
-                .ToList();
+            var directives = results.CompilerDirectiveLines
+                .ToLines();
 
-            //System.Diagnostics.Debug.WriteLine("Comments",
-            //    results.CommentLines
-            //        .Except(results.CompilerDirectiveLines)
-            //        .Except(results.OtherLines));
+            var braces = results.CurlyBraceLines
+                .ToLines();
 
-            //System.Diagnostics.Debug.WriteLine("Compiler Directives",
-            //    results.CompilerDirectiveLines
-            //        .Except(results.CommentLines)
-            //        .Except(results.OtherLines));
+            var other = results.OtherLines
+                .ToLines();
 
-            //System.Diagnostics.Debug.WriteLine("Other", results.OtherLines);
+            var numClasses = results.NumberOfClasses;
+
+            var numMethods = results.NumberOfMethods;
 
             InitializeComponent();
         }

@@ -8,15 +8,18 @@ namespace Sloccer.Core
 {
     public class TokenAndTriviaWalker : CSharpSyntaxWalker
     {
+        private SourceText _rootText;
         private Dictionary<int, Line> _lineMap;
+
         public List<Line> LineMap
         {
             get { return _lineMap.Values.OrderBy(l => l.LineNumber).ToList(); }
         }
 
-        public TokenAndTriviaWalker() : base(SyntaxWalkerDepth.StructuredTrivia)
+        public TokenAndTriviaWalker(SyntaxNode root) : base(SyntaxWalkerDepth.StructuredTrivia)
         {
             _lineMap = new Dictionary<int, Line>();
+            _rootText = root.GetText();
         }
 
         public override void VisitToken(SyntaxToken token)
@@ -33,21 +36,8 @@ namespace Sloccer.Core
             base.VisitTrivia(trivia);
         }
 
-        private SourceText _rootText;
         private void AddLine(object tokenOrTrivia, int position)
         {
-            if (_rootText == null)
-            {
-                if (tokenOrTrivia is SyntaxToken)
-                {
-                    _rootText = ((SyntaxToken)tokenOrTrivia).SyntaxTree.GetRoot().GetText();
-                }
-                else
-                {
-                    _rootText = ((SyntaxTrivia)tokenOrTrivia).SyntaxTree.GetRoot().GetText();
-                }
-            }
-
             var line = _rootText.Lines.GetLineFromPosition(position).LineNumber;
 
             if (!_lineMap.ContainsKey(line))
