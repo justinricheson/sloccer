@@ -5,36 +5,153 @@ using Microsoft.CodeAnalysis.CSharpExtensions;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
+using System.Text;
+using System;
 
 namespace Sloccer.Core
 {
     public class CSharpSlocAnalyser : ISlocAnalyser
     {
-        public long GetSlocFor(IEnumerable<FileInfo> files, SlocOptions options)
+        public SlocResult GetSlocFor(FileInfo file)
         {
-            var tree = CSharpSyntaxTree.ParseText(
-@"using /* Blah */
-    System;
-// Blah
-public class MyClass
-{
-    public void MyMethod()
-    {
-        var blah = ""abc"";
-    }
-}");
+            var simpleLineCount = 0;
+            var fileSt = new StringBuilder();
+            using (var rdr = new StreamReader(file.FullName))
+            {
+                while (rdr.Peek() > -1)
+                {
+                    simpleLineCount++;
+                    fileSt.AppendLine(rdr.ReadLine());
+                }
+            }
 
+            var tree = CSharpSyntaxTree.ParseText(fileSt.ToString());
             var root = tree.GetRoot();
-            var walker = new CustomWalker();
+
+            var walker = new TokenAndTriviaWalker();
             walker.Visit(root);
+
             var lineMap = walker.LineMap;
 
-            foreach(var line in lineMap.OrderBy(l => l.Key))
+            return new SlocResult
+            {
+                TotalLineCount = simpleLineCount,
+                WhiteSpaceLines = GetWhitespaceLines(lineMap),
+                CommentLines = GetCommentLines(lineMap),
+                CompilerDirectiveLines = GetCompilerDirectiveLines(lineMap),
+                OtherLines = GetOtherLines(lineMap)
+            };
+        }
+
+        private List<Line> GetWhitespaceLines(List<Line> lines)
+        {
+            var result = new List<Line>();
+
+            foreach (var line in lines)
+            {
+                var trivia = line.TokensAndTrivia
+                    .OfType<SyntaxTrivia>()
+                    .Where(l => IsWhiteSpace(l))
+                    .ToList();
+                if (trivia.Count > 0)
+                {
+                    result.Add(line);
+                }
+            }
+
+            return result;
+        }
+
+        private List<Line> GetCommentLines(List<Line> lines)
+        {
+            var result = new List<Line>();
+
+            foreach (var line in lines)
+            {
+                var trivia = line.TokensAndTrivia
+                    .OfType<SyntaxTrivia>()
+                    .Where(l => IsComment(l))
+                    .ToList();
+                if (trivia.Count > 0)
+                {
+                    result.Add(line);
+                }
+            }
+
+            return result;
+        }
+
+        private List<Line> GetCompilerDirectiveLines(List<Line> lines)
+        {
+            var result = new List<Line>();
+
+            foreach (var line in lines)
+            {
+                var trivia = line.TokensAndTrivia
+                    .OfType<SyntaxTrivia>()
+                    .Where(l => l.IsDirective)
+                    .ToList();
+                if (trivia.Count > 0)
+                {
+                    result.Add(line);
+                }
+            }
+
+            return result;
+        }
+
+        private List<Line> GetOtherLines(List<Line> lines)
+        {
+            var result = new List<Line>();
+
+            foreach (var line in lines)
+            {
+                var tokens = line.TokensAndTrivia
+                    .OfType<SyntaxToken>()
+                    .ToList();
+                if (tokens.Count > 0)
+                {
+                    result.Add(line);
+                }
+                else
+                {
+                    var trivia = line.TokensAndTrivia
+                        .OfType<SyntaxTrivia>()
+                        .Where(l => !l.IsDirective && !IsComment(l) && !IsWhiteSpace(l))
+                        .ToList();
+                    if (trivia.Count > 0)
+                    {
+                        result.Add(line);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private bool IsComment(SyntaxTrivia trivia)
+        {
+            return trivia.CSharpKind() == SyntaxKind.SingleLineCommentTrivia
+                || trivia.CSharpKind() == SyntaxKind.SingleLineDocumentationCommentTrivia
+                || trivia.CSharpKind() == SyntaxKind.DocumentationCommentExteriorTrivia
+                || trivia.CSharpKind() == SyntaxKind.MultiLineCommentTrivia
+                || trivia.CSharpKind() == SyntaxKind.MultiLineDocumentationCommentTrivia;
+        }
+
+        private bool IsWhiteSpace(SyntaxTrivia trivia)
+        {
+            return trivia.CSharpKind() == SyntaxKind.WhitespaceTrivia
+                || trivia.CSharpKind() == SyntaxKind.EndOfLineTrivia;
+        }
+
+        private static void PrintMap(Dictionary<int, List<object>> lineMap)
+        {
+            foreach (var line in lineMap.OrderBy(l => l.Key))
             {
                 System.Diagnostics.Debug.WriteLine("Line {0}", line.Key);
-                foreach(var b in line.Value)
+                foreach (var b in line.Value)
                 {
-                    if(b is SyntaxToken)
+                    if (b is SyntaxToken)
                     {
                         var token = (SyntaxToken)b;
                         System.Diagnostics.Debug.WriteLine("\t{0} - '{1}'", token.CSharpKind(), token.Text);
@@ -45,49 +162,6 @@ public class MyClass
                         System.Diagnostics.Debug.WriteLine("\t{0} - '{1}'", trivia.CSharpKind(), trivia);
                     }
                 }
-            }
-
-            return 1;
-        }
-
-        public class CustomWalker : CSharpSyntaxWalker
-        {
-            public Dictionary<int, List<object>> LineMap { get; }
-
-            public CustomWalker() : base(SyntaxWalkerDepth.StructuredTrivia)
-            {
-                LineMap = new Dictionary<int, List<object>>();
-            }
-
-            public override void VisitToken(SyntaxToken token)
-            {
-                var parent = token.SyntaxTree.GetRoot();
-
-                AddLine(token, token.Span.Start, parent);
-
-                base.VisitToken(token);
-            }
-
-            public override void VisitTrivia(SyntaxTrivia trivia)
-            {
-                var parent = trivia.SyntaxTree.GetRoot();
-
-                AddLine(trivia, trivia.Span.Start, parent);
-
-                base.VisitTrivia(trivia);
-            }
-
-            private void AddLine(object tokenOrTrivia, int position, SyntaxNode parent)
-            {
-                var text = parent.GetText();
-                var line = text.Lines.GetLineFromPosition(position).LineNumber;
-
-                if (!LineMap.ContainsKey(line))
-                {
-                    LineMap.Add(line, new List<object>());
-                }
-
-                LineMap[line].Add(tokenOrTrivia);
             }
         }
     }
