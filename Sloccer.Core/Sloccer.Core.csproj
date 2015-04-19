@@ -51,7 +51,8 @@
     <Compile Include="ClassAndMethodWalker.cs" />
     <Compile Include="CSharpSlocAnalyser.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="ISlocAnalyser.cs" />
+    <Compile Include="IFileStringRetriver.cs" />
+    <Compile Include="IStringRetriver.cs" />
     <Compile Include="Line.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SlocResult.cs" />

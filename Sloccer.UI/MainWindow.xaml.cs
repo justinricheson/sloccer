@@ -9,24 +9,25 @@ namespace Sloccer.UI
         public MainWindow()
         {
             var testFile = new FileInfo("C:\\Users\\Justin\\Desktop\\roslyn\\Src\\Compilers\\CSharp\\Portable\\CSharpExtensions.cs");
+            var codeRetriever = new FileStringRetriver(testFile);
 
             var a = new CSharpSlocAnalyser();
-            var results = a.GetSlocFor(testFile);
+            var results = a.GetSlocFor(codeRetriever);
 
             var whitespace = results.WhiteSpaceLines
-                .ToLines();
+                .ConvertToString();
 
             var comments = results.CommentLines
-                .ToLines();
+                .ConvertToString();
 
             var directives = results.CompilerDirectiveLines
-                .ToLines();
+                .ConvertToString();
 
             var braces = results.CurlyBraceLines
-                .ToLines();
+                .ConvertToString();
 
             var other = results.OtherLines
-                .ToLines();
+                .ConvertToString();
 
             var numClasses = results.NumberOfClasses;
 

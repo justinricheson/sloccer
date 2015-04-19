@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharpExtensions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,23 +9,12 @@ using System.Text;
 
 namespace Sloccer.Core
 {
-    // TODO mock fs calls
-    public class CSharpSlocAnalyser : ISlocAnalyser
+    public class CSharpSlocAnalyser
     {
-        public SlocResult GetSlocFor(FileInfo file)
+        public SlocResult GetSlocFor(IStringRetriever codeStringRetriever)
         {
-            var simpleLineCount = 0;
-            var fileSt = new StringBuilder();
-            using (var rdr = new StreamReader(file.FullName))
-            {
-                while (rdr.Peek() > -1)
-                {
-                    simpleLineCount++;
-                    fileSt.AppendLine(rdr.ReadLine());
-                }
-            }
-
-            var tree = CSharpSyntaxTree.ParseText(fileSt.ToString());
+            var code = codeStringRetriever.GetString();
+            var tree = CSharpSyntaxTree.ParseText(code);
             var root = tree.GetRoot();
 
             var tokenWalker = new TokenAndTriviaWalker(root);
@@ -37,7 +27,7 @@ namespace Sloccer.Core
 
             return new SlocResult
             {
-                TotalLineCount = simpleLineCount,
+                TotalLineCount = code.ToLines().Count,
                 WhiteSpaceLines = lines.Where(l => IsWhiteSpace(l)).ToList(),
                 CommentLines = lines.Where(l => IsComment(l)).ToList(),
                 CompilerDirectiveLines = lines.Where(l => IsCompilerDirective(l)).ToList(),
