@@ -3,11 +3,11 @@ using System.Text;
 
 namespace Sloccer.Core
 {
-    public class FileStringRetriver : IStringRetriever
+    public class FileStringRetriever : IStringRetriever
     {
         private FileInfo _file;
 
-        public FileStringRetriver(FileInfo file)
+        public FileStringRetriever(FileInfo file)
         {
             _file = file;
         }

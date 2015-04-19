@@ -55,9 +55,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ViewModels\DelegateCommand.cs" />
     <Compile Include="StatsView.xaml.cs">
       <DependentUpon>StatsView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\FileViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\ProjectViewModel.cs" />
+    <Compile Include="ViewModels\StatsViewModel.cs" />
+    <Compile Include="ViewModels\ViewModelBase.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

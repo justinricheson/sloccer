@@ -9,7 +9,7 @@ namespace Sloccer.UI
         public MainWindow()
         {
             var testFile = new FileInfo("C:\\Users\\Justin\\Desktop\\roslyn\\Src\\Compilers\\CSharp\\Portable\\CSharpExtensions.cs");
-            var codeRetriever = new FileStringRetriver(testFile);
+            var codeRetriever = new FileStringRetriever(testFile);
             var code = codeRetriever.GetString();
 
             var results = new CSharpSlocAnalyser()

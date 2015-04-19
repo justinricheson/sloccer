@@ -19,15 +19,19 @@
             <Label Content="Compiler Directives:" Height="30" />
             <Label Content="Curly Braces:" Height="30" />
             <Label Content="Executable:" Height="30" />
+            <Label Content="Number of Classes:" Height="30" />
+            <Label Content="Number of Methods:" Height="30" />
         </StackPanel>
 
         <StackPanel Grid.Column="1">
-            <TextBlock Text="{Binding TotalLines}" Height="30" />
+            <TextBlock Text="{Binding Total}" Height="30" />
             <TextBlock Text="{Binding Whitespace}" Height="30" />
             <TextBlock Text="{Binding Comments}" Height="30" />
             <TextBlock Text="{Binding Directives}" Height="30" />
             <TextBlock Text="{Binding Braces}" Height="30" />
             <TextBlock Text="{Binding Executable}" Height="30" />
+            <TextBlock Text="{Binding NumberOfClasses}" Height="30" />
+            <TextBlock Text="{Binding NumberOfMethods}" Height="30" />
         </StackPanel>
     </Grid>
 </UserControl>
