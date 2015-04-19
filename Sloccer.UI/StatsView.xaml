@@ -6,32 +6,32 @@
              xmlns:local="clr-namespace:Sloccer.UI"
              mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300">
 
-    <Grid>
+    <Grid Background="White">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <StackPanel>
-            <Label Content="Total Lines:" Height="30" />
-            <Label Content="Whitespace:" Height="30" />
-            <Label Content="Comments:" Height="30" />
-            <Label Content="Compiler Directives:" Height="30" />
-            <Label Content="Curly Braces:" Height="30" />
-            <Label Content="Executable:" Height="30" />
-            <Label Content="Number of Classes:" Height="30" />
-            <Label Content="Number of Methods:" Height="30" />
+            <Label Content="Total Lines:" Height="30" FontWeight="Bold" />
+            <Label Content="Whitespace:" Height="30" FontWeight="Bold" />
+            <Label Content="Comments:" Height="30" FontWeight="Bold" />
+            <Label Content="Compiler Directives:" Height="30" FontWeight="Bold" />
+            <Label Content="Curly Braces:" Height="30" FontWeight="Bold" />
+            <Label Content="Executable:" Height="30" FontWeight="Bold" />
+            <Label Content="Number of Classes:" Height="30" FontWeight="Bold" />
+            <Label Content="Number of Methods:" Height="30" FontWeight="Bold" />
         </StackPanel>
 
-        <StackPanel Grid.Column="1">
-            <TextBlock Text="{Binding Total}" Height="30" />
-            <TextBlock Text="{Binding Whitespace}" Height="30" />
-            <TextBlock Text="{Binding Comments}" Height="30" />
-            <TextBlock Text="{Binding Directives}" Height="30" />
-            <TextBlock Text="{Binding Braces}" Height="30" />
-            <TextBlock Text="{Binding Executable}" Height="30" />
-            <TextBlock Text="{Binding NumberOfClasses}" Height="30" />
-            <TextBlock Text="{Binding NumberOfMethods}" Height="30" />
+        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+            <Label Content="{Binding Total}" Height="30" />
+            <Label Content="{Binding Whitespace}" Height="30" />
+            <Label Content="{Binding Comments}" Height="30" />
+            <Label Content="{Binding Directives}" Height="30" />
+            <Label Content="{Binding Braces}" Height="30" />
+            <Label Content="{Binding Executable}" Height="30" />
+            <Label Content="{Binding NumberOfClasses}" Height="30" />
+            <Label Content="{Binding NumberOfMethods}" Height="30" />
         </StackPanel>
     </Grid>
 </UserControl>

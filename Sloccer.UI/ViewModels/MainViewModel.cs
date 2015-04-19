@@ -99,6 +99,7 @@ namespace Sloccer.UI.ViewModels
 
             files.AddRange(System.IO.Directory
                 .GetFiles(directory)
+                .Where(f => Path.GetExtension(f) == ".cs")
                 .Select(f => new FileInfo(f)));
 
             foreach (var child in System.IO.Directory.GetDirectories(directory))
