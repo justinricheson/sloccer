@@ -1,0 +1,33 @@
+﻿<UserControl x:Class="Sloccer.UI.StatsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Sloccer.UI"
+             mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel>
+            <Label Content="Total Lines:" Height="30" />
+            <Label Content="Whitespace:" Height="30" />
+            <Label Content="Comments:" Height="30" />
+            <Label Content="Compiler Directives:" Height="30" />
+            <Label Content="Curly Braces:" Height="30" />
+            <Label Content="Executable:" Height="30" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1">
+            <TextBlock Text="{Binding TotalLines}" Height="30" />
+            <TextBlock Text="{Binding Whitespace}" Height="30" />
+            <TextBlock Text="{Binding Comments}" Height="30" />
+            <TextBlock Text="{Binding Directives}" Height="30" />
+            <TextBlock Text="{Binding Braces}" Height="30" />
+            <TextBlock Text="{Binding Executable}" Height="30" />
+        </StackPanel>
+    </Grid>
+</UserControl>
