@@ -10,9 +10,10 @@ namespace Sloccer.UI
         {
             var testFile = new FileInfo("C:\\Users\\Justin\\Desktop\\roslyn\\Src\\Compilers\\CSharp\\Portable\\CSharpExtensions.cs");
             var codeRetriever = new FileStringRetriver(testFile);
+            var code = codeRetriever.GetString();
 
-            var a = new CSharpSlocAnalyser();
-            var results = a.GetSlocFor(codeRetriever);
+            var results = new CSharpSlocAnalyser()
+                .GetSlocFor(code);
 
             var whitespace = results.WhiteSpaceLines
                 .ConvertToString();

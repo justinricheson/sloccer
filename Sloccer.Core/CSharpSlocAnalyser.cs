@@ -1,19 +1,15 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharpExtensions;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace Sloccer.Core
 {
     public class CSharpSlocAnalyser
     {
-        public SlocResult GetSlocFor(IStringRetriever codeStringRetriever)
+        public SlocResult GetSlocFor(string code)
         {
-            var code = codeStringRetriever.GetString();
             var tree = CSharpSyntaxTree.ParseText(code);
             var root = tree.GetRoot();
 
