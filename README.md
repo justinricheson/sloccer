@@ -1,1 +1,1 @@
-Sloccer is an application for counting source lines of code in large C# code bases. This project was really an excuse for me to play with the Roslyn compiler, but it has some utility if you care about code size metrics. It's reasonably extensible to support whatever definition for "line of code" you can dream up.
+Measures source lines of code in C# projects using the roslyn compiler. Shows counts for comments, compiler directives, executable statements, whitespace, and curly braces.
